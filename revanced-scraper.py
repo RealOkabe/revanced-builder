@@ -10,3 +10,10 @@ URL_REVANCED_INTEGRATIONS = URL_BASE + "revanced-integrations/releases"
 cliReleases = json.loads(requests.get(URL_REVANCED_CLI).text)
 patchesReleases = json.loads(requests.get(URL_REVANCED_PATCHES).text)
 integrationsReleases = json.loads(requests.get(URL_REVANCED_INTEGRATIONS).text)
+
+VERSIONS_FILE = json.loads(open("versions.json").read())
+
+latestVersionCli = VERSIONS_FILE[0]['vCli']
+latestVersionPatches = VERSIONS_FILE[0]['vPatches']
+latestVersionIntegrations = VERSIONS_FILE[0]['vIntegrations']
+
