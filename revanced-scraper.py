@@ -6,7 +6,7 @@ URL_BASE = "https://api.github.com/repos/revanced/"
 URL_REVANCED_CLI = URL_BASE + "revanced-cli/releases"
 URL_REVANCED_PATCHES = URL_BASE + "revanced-patches/releases"
 URL_REVANCED_INTEGRATIONS = URL_BASE + "revanced-integrations/releases"
-VERSIONS_FILE_PATH = "versions.json"
+VERSIONS_FILE_HANDLE = open("versions.json")
 
 def checkFileVersions():
     # Get the releases
@@ -20,17 +20,20 @@ def checkFileVersions():
     latestVersionIntegrations = integrationsReleases[0]['id']
 
     # Get last versions from cache
-    VERSIONS_FILE = json.loads(open(VERSIONS_FILE_PATH).read())
+    VERSIONS_FILE = json.loads(VERSIONS_FILE_HANDLE.read())
     lastVersionCli = VERSIONS_FILE[0]['vCli']
     lastVersionPatches = VERSIONS_FILE[0]['vPatches']
     lastVersionIntegrations = VERSIONS_FILE[0]['vIntegrations']
 
     if latestVersionCli > lastVersionCli:
+        lastVersionCli = latestVersionCli
         updateFiles(URL_REVANCED_CLI)
 
     if latestVersionPatches > lastVersionPatches:
+        lastVersionPatches = latestVersionPatches
         updateFiles(URL_REVANCED_PATCHES)
     
     if latestVersionIntegrations > lastVersionIntegrations:
+        lastVersionIntegrations = latestVersionIntegrations
         updateFiles(URL_REVANCED_INTEGRATIONS)
 
