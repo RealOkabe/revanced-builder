@@ -1,5 +1,6 @@
 import json
 import requests
+import os
 from bs4 import BeautifulSoup
 
 URL_BASE = "https://api.github.com/repos/revanced/"
@@ -17,11 +18,8 @@ def checkFileVersions():
 
     # Get latest versions from releases
     latestVersionCli = cliReleases[0]['id']
-    print("Latest Version CLI {}".format(latestVersionCli))
     latestVersionPatches = patchesReleases[0]['id']
-    print("Latest Version Patches {}".format(latestVersionPatches))
     latestVersionIntegrations = integrationsReleases[0]['id']
-    print("Latest Version Integrations {}".format(latestVersionIntegrations))
 
     # Get last versions from cache
     VERSIONS_FILE = json.loads(VERSIONS_FILE_HANDLE.read())
@@ -47,4 +45,20 @@ def checkFileVersions():
     VERSIONS_FILE_HANDLE.truncate()
     json.dump(data, VERSIONS_FILE_HANDLE)
 
+
+def downloadCliVersion():
+    cliReleases = json.loads(requests.get(URL_REVANCED_CLI).text)
+    browser_download = cliReleases[0]['assets'][0]['browser_download_url']
+    file_name = cliReleases[0]['assets'][0]['name']
+    response = requests.get(browser_download)
+    current_directory = os.getcwd()
+    files = os.listdir(current_directory)
+    jar_file = [file for file in files if file.endswith(".jar")]
+    if jar_file:
+        os.remove(jar_file[0])
+    with open(file_name, 'wb') as f:
+        f.write(response.content)
+
+
 checkFileVersions()
+downloadCliVersion()
