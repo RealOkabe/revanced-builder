@@ -6,7 +6,8 @@ URL_BASE = "https://api.github.com/repos/revanced/"
 URL_REVANCED_CLI = URL_BASE + "revanced-cli/releases"
 URL_REVANCED_PATCHES = URL_BASE + "revanced-patches/releases"
 URL_REVANCED_INTEGRATIONS = URL_BASE + "revanced-integrations/releases"
-VERSIONS_FILE_HANDLE = open("versions.json")
+VERSIONS_FILE_HANDLE = open("versions.json", "r+")
+
 
 def checkFileVersions():
     # Get the releases
@@ -16,24 +17,34 @@ def checkFileVersions():
 
     # Get latest versions from releases
     latestVersionCli = cliReleases[0]['id']
+    print("Latest Version CLI {}".format(latestVersionCli))
     latestVersionPatches = patchesReleases[0]['id']
+    print("Latest Version Patches {}".format(latestVersionPatches))
     latestVersionIntegrations = integrationsReleases[0]['id']
+    print("Latest Version Integrations {}".format(latestVersionIntegrations))
 
     # Get last versions from cache
     VERSIONS_FILE = json.loads(VERSIONS_FILE_HANDLE.read())
-    lastVersionCli = VERSIONS_FILE[0]['vCli']
-    lastVersionPatches = VERSIONS_FILE[0]['vPatches']
-    lastVersionIntegrations = VERSIONS_FILE[0]['vIntegrations']
+    lastVersionCli = int(VERSIONS_FILE[0]['vCli'])
+    lastVersionPatches = int(VERSIONS_FILE[0]['vPatches'])
+    lastVersionIntegrations = int(VERSIONS_FILE[0]['vIntegrations'])
 
     if latestVersionCli > lastVersionCli:
         lastVersionCli = latestVersionCli
-        updateFiles(URL_REVANCED_CLI)
 
     if latestVersionPatches > lastVersionPatches:
         lastVersionPatches = latestVersionPatches
-        updateFiles(URL_REVANCED_PATCHES)
-    
+
     if latestVersionIntegrations > lastVersionIntegrations:
         lastVersionIntegrations = latestVersionIntegrations
-        updateFiles(URL_REVANCED_INTEGRATIONS)
 
+    data = [{
+        "vCli": lastVersionCli,
+        "vIntegrations": lastVersionIntegrations,
+        "vPatches": lastVersionPatches
+    }]
+    VERSIONS_FILE_HANDLE.seek(0)
+    VERSIONS_FILE_HANDLE.truncate()
+    json.dump(data, VERSIONS_FILE_HANDLE)
+
+checkFileVersions()
