@@ -1,6 +1,4 @@
-import json
-import requests
-import os
+import glob, json, os, requests
 from bs4 import BeautifulSoup
 
 URL_BASE = "https://api.github.com/repos/revanced/"
@@ -29,12 +27,15 @@ def checkFileVersions():
 
     if latestVersionCli > lastVersionCli:
         lastVersionCli = latestVersionCli
+        downloadRevancedFile(URL_REVANCED_CLI, latestVersionCli)
 
     if latestVersionPatches > lastVersionPatches:
         lastVersionPatches = latestVersionPatches
+        downloadRevancedFile(URL_REVANCED_PATCHES, latestVersionPatches)
 
     if latestVersionIntegrations > lastVersionIntegrations:
         lastVersionIntegrations = latestVersionIntegrations
+        downloadRevancedFile(URL_REVANCED_INTEGRATIONS, latestVersionIntegrations)
 
     data = [{
         "vCli": lastVersionCli,
@@ -46,19 +47,28 @@ def checkFileVersions():
     json.dump(data, VERSIONS_FILE_HANDLE)
 
 
-def downloadCliVersion():
-    cliReleases = json.loads(requests.get(URL_REVANCED_CLI).text)
-    browser_download = cliReleases[0]['assets'][0]['browser_download_url']
-    file_name = cliReleases[0]['assets'][0]['name']
-    response = requests.get(browser_download)
-    current_directory = os.getcwd()
-    files = os.listdir(current_directory)
-    jar_file = [file for file in files if file.endswith(".jar")]
-    if jar_file:
-        os.remove(jar_file[0])
+def downloadRevancedFile(downloadUrl, downloadVersion):
+    assetsUrl = f"{downloadUrl}/{downloadVersion}/assets"
+    fileToRemove = []
+    if downloadUrl == URL_REVANCED_CLI:
+        fileToRemove = glob.glob("*cli*jar")
+    elif downloadUrl == URL_REVANCED_PATCHES:
+        fileToRemove = glob.glob("*patches*jar")
+    elif downloadUrl == URL_REVANCED_INTEGRATIONS:
+        fileToRemove = glob.glob("*integrations*apk")
+    
+    for i in fileToRemove:
+        os.remove(i)
+    cliReleases = json.loads(requests.get(assetsUrl).text)
+    if downloadUrl == URL_REVANCED_PATCHES:
+        currentRelease = cliReleases[1]
+    else:
+        currentRelease = cliReleases[0]
+    browserDownloadUrl = currentRelease['browser_download_url']
+    file_name = currentRelease['name']
+    response = requests.get(browserDownloadUrl)
     with open(file_name, 'wb') as f:
         f.write(response.content)
 
 
 checkFileVersions()
-downloadCliVersion()
